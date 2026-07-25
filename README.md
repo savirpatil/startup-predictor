@@ -8,9 +8,3 @@ based on early-stage company characteristics.
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-
-
-## Run the app
-
-streamlit run app/app.py
-
