@@ -1,6 +1,3 @@
-"""
-Hyperparameter tuning for the baseline logistic regression model using Optuna.
-"""
 import optuna
 import joblib
 from sklearn.linear_model import LogisticRegression

@@ -27,6 +27,25 @@ FEATURE_ORDER = (
     + ["is_othercategory"]
 )
 
+FRIENDLY_NAMES = {
+    "funding_rounds": "Number of funding rounds",
+    "funding_total_usd_log": "Total funding raised",
+    "funding_missing": "Missing funding data",
+    "age_last_funding_year": "Years to most recent round",
+    "funding_gap": "Time between first and last round",
+    "age_missing": "Missing founding date",
+    "funding_velocity": "Funding velocity (rounds per year)",
+    "is_northamerica": "Headquartered in North America",
+    "is_europe": "Headquartered in Europe",
+    "is_asia": "Headquartered in Asia",
+    "is_southamerica": "Headquartered in South America",
+    "is_oceania": "Headquartered in Oceania",
+    "is_africa": "Headquartered in Africa",
+    "is_othercategory": "Industry: Other",
+}
+for cat, col in CATEGORY_COLS.items():
+    FRIENDLY_NAMES[col] = f"Industry: {cat}"
+
 
 @st.cache_resource
 def load_model():
@@ -91,6 +110,10 @@ label p {
 .bar-marker { position: absolute; top: -6px; width: 2px; height: 14px; background: var(--ink); }
 .bar-scale { display: flex; justify-content: space-between; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 600; color: var(--z400); }
 .disclaimer { font-size: 10px; color: var(--z400); font-style: italic; margin-top: 1.5rem; border-top: 1px solid var(--z200); padding-top: 1rem; }
+.factors-title { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600; color: var(--z500); margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--z200); }
+.factor-row { display: flex; justify-content: space-between; font-size: 0.85rem; padding: 0.4rem 0; }
+.factor-positive { color: #1f6f54; }
+.factor-negative { color: #a6482e; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -143,6 +166,21 @@ if submitted:
     pct = round(prob_success * 100, 1)
     verdict = "Leans successful" if prob_success >= 0.5 else "Leans closed"
 
+    # Per-prediction explainability: contribution of each feature to the log-odds
+    scaler = model.named_steps["scaler"]
+    clf = model.named_steps["clf"]
+    X_scaled = scaler.transform(X)
+    contributions = X_scaled[0] * clf.coef_[0]
+    contrib_series = pd.Series(contributions, index=FEATURE_ORDER)
+    top_factors = contrib_series.reindex(contrib_series.abs().sort_values(ascending=False).index).head(4)
+
+    factor_rows = ""
+    for feat, val in top_factors.items():
+        label = FRIENDLY_NAMES.get(feat, feat)
+        direction = "factor-positive" if val > 0 else "factor-negative"
+        arrow = "pushes toward successful" if val > 0 else "pushes toward closed"
+        factor_rows += f'<div class="factor-row"><span>{label}</span><span class="{direction}">{arrow}</span></div>'
+
     st.markdown(f"""
     <div class="results-card">
         <div class="results-label">Estimated Model Verdict</div>
@@ -153,6 +191,8 @@ if submitted:
         </div>
         <div class="bar-track"><div class="bar-marker" style="left: calc({pct}% - 1px);"></div></div>
         <div class="bar-scale"><span>Closed</span><span>Successful</span></div>
+        <div class="factors-title">Top factors behind this estimate</div>
+        {factor_rows}
         <div class="disclaimer">Baseline model, first pass. Not investment advice.</div>
     </div>
     """, unsafe_allow_html=True)

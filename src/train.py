@@ -1,6 +1,3 @@
-"""
-Trains the baseline logistic regression model (v2 - global dataset).
-"""
 import joblib
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split

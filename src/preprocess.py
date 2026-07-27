@@ -1,6 +1,3 @@
-"""
-Data loading and preprocessing for the startup success predictor (v2 - global dataset).
-"""
 import numpy as np
 import pandas as pd
 import pycountry
@@ -36,18 +33,16 @@ def _country_to_continent(code3):
 def clean_data(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
 
-    # Resolved outcomes only
     df = df[df["status"].isin(["closed", "acquired", "ipo"])].copy()
     df["target"] = df["status"].isin(["acquired", "ipo"]).astype(int)
 
-    # Funding amount: "-" means unreported, not zero
+    # Funding amount: "-" means unreported
     df["funding_total_usd"] = df["funding_total_usd"].replace("-", np.nan).astype(float)
     df["funding_missing"] = df["funding_total_usd"].isnull().astype(int)
     median_funding = df["funding_total_usd"].median()
     df["funding_total_usd"] = df["funding_total_usd"].fillna(median_funding)
     df["funding_total_usd_log"] = np.log1p(df["funding_total_usd"])
 
-    # Dates -> age-based features
     for c in ["founded_at", "first_funding_at", "last_funding_at"]:
         df[c] = pd.to_datetime(df[c], errors="coerce")
 
@@ -59,11 +54,11 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
         df[c] = df[c].fillna(df[c].median())
 
     # Time between first and last round -- distinct signal from raw age,
-    # replaces age_first_funding_year to fix severe multicollinearity (VIF 85+)
+    # replaces age_first_funding_year to fix multicollinearity (VIF 85+)
     df["funding_gap"] = (df["age_last_funding_year"] - df["age_first_funding_year"]).clip(lower=0)
     df["funding_velocity"] = df["funding_rounds"] / df["age_last_funding_year"].clip(lower=0.25)
 
-    # Continent, not raw state
+    # Continent
     df["continent"] = df["country_code"].apply(_country_to_continent)
     for cont in ["NorthAmerica", "Europe", "Asia", "SouthAmerica", "Oceania", "Africa"]:
         df[f"is_{cont.lower()}"] = (df["continent"] == cont).astype(int)
