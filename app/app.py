@@ -21,7 +21,7 @@ CONTINENT_COLS = {
 
 FEATURE_ORDER = (
     ["funding_rounds", "funding_total_usd_log", "funding_missing",
-     "age_first_funding_year", "age_last_funding_year", "age_missing", "funding_velocity"]
+     "age_last_funding_year", "funding_gap", "age_missing", "funding_velocity"]
     + list(CONTINENT_COLS.values())
     + list(CATEGORY_COLS.values())
     + ["is_othercategory"]
@@ -96,8 +96,8 @@ label p {
 
 st.markdown("""
 <div class="doc-title">Startup Outcome Probability Model</div>
-<div class="doc-subtitle">An analytical tool that estimates the success of early-stage startups based on their funding 
-history, timeline, and characteristics.</div>
+<div class="doc-subtitle">An analytical tool for estimating the binary outcome of early-stage
+ventures based on funding trajectories, temporal dynamics, and global market context.</div>
 """, unsafe_allow_html=True)
 
 with st.form("input_form"):
@@ -114,17 +114,18 @@ with st.form("input_form"):
     age_first_funding_year = c1.number_input("Years to First Round", value=0.5, step=0.1)
     age_last_funding_year = c2.number_input("Years to Most Recent Round", value=1.5, step=0.1)
 
-    submitted = st.form_submit_button("Calculate Probability")
+    submitted = st.form_submit_button("Recalculate Probability")
 
 if submitted:
     row = {c: 0 for c in FEATURE_ORDER}
     funding_velocity = funding_rounds / max(age_last_funding_year, 0.25)
+    funding_gap = max(age_last_funding_year - age_first_funding_year, 0)
     row.update({
         "funding_rounds": funding_rounds,
         "funding_total_usd_log": np.log1p(funding_total_usd),
         "funding_missing": 0,
-        "age_first_funding_year": age_first_funding_year,
         "age_last_funding_year": age_last_funding_year,
+        "funding_gap": funding_gap,
         "age_missing": 0,
         "funding_velocity": funding_velocity,
     })

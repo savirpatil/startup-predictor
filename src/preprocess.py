@@ -58,7 +58,9 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
     for c in ["age_first_funding_year", "age_last_funding_year"]:
         df[c] = df[c].fillna(df[c].median())
 
-    # Objective momentum proxy, replaces the old vague milestone flag
+    # Time between first and last round -- distinct signal from raw age,
+    # replaces age_first_funding_year to fix severe multicollinearity (VIF 85+)
+    df["funding_gap"] = (df["age_last_funding_year"] - df["age_first_funding_year"]).clip(lower=0)
     df["funding_velocity"] = df["funding_rounds"] / df["age_last_funding_year"].clip(lower=0.25)
 
     # Continent, not raw state
@@ -76,7 +78,7 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
 
     feature_cols = (
         ["funding_rounds", "funding_total_usd_log", "funding_missing",
-         "age_first_funding_year", "age_last_funding_year", "age_missing",
+         "age_last_funding_year", "funding_gap", "age_missing",
          "funding_velocity"]
         + [f"is_{c.lower()}" for c in ["NorthAmerica", "Europe", "Asia", "SouthAmerica", "Oceania", "Africa"]]
         + ["is_" + cat.lower().replace(" ", "").replace("-", "") for cat in TOP_CATEGORIES]
