@@ -6,7 +6,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score
 
-from preprocess import load_raw_data, clean_data, get_feature_target
+from preprocess_clf import load_raw_data, clean_data, get_feature_target
 
 RANDOM_STATE = 42
 
