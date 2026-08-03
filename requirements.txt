@@ -10,3 +10,4 @@ joblib
 pycountry
 pycountry-convert
 optuna
+xgboost

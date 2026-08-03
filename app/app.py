@@ -1,3 +1,4 @@
+import html
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -5,6 +6,7 @@ import joblib
 from pathlib import Path
 
 MODEL_PATH = Path(__file__).resolve().parent.parent / "models" / "tuned_logreg.pkl"
+REG_MODEL_PATH = Path(__file__).resolve().parent.parent / "models" / "xgb_unicorn_model.pkl"
 
 TOP_CATEGORIES = [
     "Biotechnology", "Software", "Curated Web", "Advertising", "E-Commerce",
@@ -46,10 +48,39 @@ FRIENDLY_NAMES = {
 for cat, col in CATEGORY_COLS.items():
     FRIENDLY_NAMES[col] = f"Industry: {cat}"
 
+# Pipeline 2 (valuation) feature order and constants
+REG_FEATURE_ORDER = (
+    ["funding_usd_log", "years_to_unicorn", "capital_intensity_log", "funding_vs_industry_avg",
+     "is_funding_above_industry_avg", "is_na_tech", "funding_missing", "age_missing"]
+    + list(CONTINENT_COLS.values())
+    + list(CATEGORY_COLS.values())
+    + ["is_othercategory"]
+)
+
+# Real per-category averages from compute_stats.py
+CATEGORY_AVG_LOG_FUNDING = {
+    "Biotechnology": 19.7161, "Software": 19.5826, "Curated Web": 19.8744, "Advertising": 19.7161,
+    "E-Commerce": 19.9314, "Mobile": 19.5363, "Enterprise Software": 19.6944, "Games": 19.7161,
+    "Analytics": 19.6816, "Health Care": 19.4488,
+}
+DEFAULT_AVG_LOG_FUNDING = 19.7161
+RMSE_MARGIN = 0.5667
+
 
 @st.cache_resource
 def load_model():
     return joblib.load(MODEL_PATH)
+
+
+@st.cache_resource
+def load_reg_model():
+    return joblib.load(REG_MODEL_PATH)
+
+
+def format_currency_range(lower_usd, upper_usd):
+    def fmt(v):
+        return f"${v / 1e9:.2f}B" if v >= 1e9 else f"${v / 1e6:.1f}M"
+    return f"{fmt(lower_usd)} - {fmt(upper_usd)}"
 
 
 st.set_page_config(page_title="Startup Outcome Model", layout="centered")
@@ -114,6 +145,8 @@ label p {
 .factor-row { display: flex; justify-content: space-between; font-size: 0.85rem; padding: 0.4rem 0; }
 .factor-positive { color: #1f6f54; }
 .factor-negative { color: #a6482e; }
+.p2-note { font-size: 12px; color: var(--z500); margin-top: 0.5rem; }
+.p2-caveat { font-size: 0.8rem; font-weight: 600; color: #a6482e; background: rgba(166,72,46,0.08); border: 1px solid rgba(166,72,46,0.25); border-radius: 2px; padding: 0.5rem 0.75rem; margin-top: 0.75rem; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -134,8 +167,8 @@ with st.form("input_form"):
 
     st.markdown('<div class="section-head"><span class="section-num">03.</span><span class="section-title">Temporal Dynamics</span></div>', unsafe_allow_html=True)
     c1, c2 = st.columns(2)
-    age_first_funding_year = c1.number_input("Years to First Round", value=0.5, step=0.1)
-    age_last_funding_year = c2.number_input("Years to Most Recent Round", value=1.5, step=0.1)
+    age_first_funding_year = c1.number_input("Years to First Round", min_value=0.0, value=0.5, step=0.1)
+    age_last_funding_year = c2.number_input("Years to Most Recent Round", min_value=0.0, value=1.5, step=0.1)
 
     submitted = st.form_submit_button("Calculate Probability")
 
@@ -181,6 +214,54 @@ if submitted:
         arrow = "pushes toward successful" if val > 0 else "pushes toward closed"
         factor_rows += f'<div class="factor-row"><span>{label}</span><span class="{direction}">{arrow}</span></div>'
 
+    # Pipeline 2: valuation estimate for high-confidence, well-funded companies
+    p2_html = ""
+    if prob_success >= 0.75:
+        if funding_total_usd >= 10_000_000:
+            funding_usd_log = np.log1p(funding_total_usd)
+            years_to_unicorn = age_last_funding_year
+            capital_intensity_log = np.log1p(funding_total_usd / (years_to_unicorn + 1))
+            avg_log_funding = CATEGORY_AVG_LOG_FUNDING.get(category, DEFAULT_AVG_LOG_FUNDING)
+            funding_vs_industry_avg = funding_usd_log - avg_log_funding
+
+            reg_row = {c: 0 for c in REG_FEATURE_ORDER}
+            reg_row.update({
+                "funding_usd_log": funding_usd_log,
+                "years_to_unicorn": years_to_unicorn,
+                "capital_intensity_log": capital_intensity_log,
+                "funding_vs_industry_avg": funding_vs_industry_avg,
+                "is_funding_above_industry_avg": int(funding_vs_industry_avg > 0),
+                "is_na_tech": int(continent == "North America" and category in ["Software", "Analytics"]),
+            })
+            if continent in CONTINENT_COLS:
+                reg_row[CONTINENT_COLS[continent]] = 1
+            if category in CATEGORY_COLS:
+                reg_row[CATEGORY_COLS[category]] = 1
+            else:
+                reg_row["is_othercategory"] = 1
+
+            X_reg = pd.DataFrame([reg_row])[REG_FEATURE_ORDER]
+            try:
+                reg_model = load_reg_model()
+                predicted_log_val = reg_model.predict(X_reg)[0]
+                lower_usd = np.expm1(predicted_log_val - RMSE_MARGIN)
+                upper_usd = np.expm1(predicted_log_val + RMSE_MARGIN)
+                val_str = format_currency_range(lower_usd, upper_usd)
+                caveat_html = ""
+                if funding_total_usd < 100_000_000:
+                    caveat_html = '<div class="p2-caveat">Low confidence: 96% of the training data raised $100M+, so this estimate is largely extrapolated below that level.</div>'
+                p2_html = f"""
+                <div class="factors-title">Valuation Estimate</div>
+                <div class="likelihood-row" style="margin-top: 0.5rem;">
+                    <span style="font-size:0.85rem; font-weight:500;">Valuation Range</span>
+                    <span class="likelihood-pct">{val_str}</span>
+                </div>
+                <div class="p2-note">Estimated valuation range based on funding, timeline, and industry.</div>{caveat_html}"""
+            except Exception as e:
+                p2_html = f'<div class="p2-note" style="color: #a6482e;">Valuation model error: {html.escape(str(e))}</div>'
+        else:
+            p2_html = '<div class="p2-note" style="border-top: 1px solid var(--z200); padding-top: 1rem; margin-top: 1.5rem;">Success likelihood is high, but total funding is under $10M required for a valuation estimate.</div>'
+
     st.markdown(f"""
     <div class="results-card">
         <div class="results-label">Estimated Model Verdict</div>
@@ -192,7 +273,7 @@ if submitted:
         <div class="bar-track"><div class="bar-marker" style="left: calc({pct}% - 1px);"></div></div>
         <div class="bar-scale"><span>Closed</span><span>Successful</span></div>
         <div class="factors-title">Top factors behind this estimate</div>
-        {factor_rows}
+        {factor_rows}{p2_html}
         <div class="disclaimer">Baseline model, first pass. Not investment advice.</div>
     </div>
     """, unsafe_allow_html=True)

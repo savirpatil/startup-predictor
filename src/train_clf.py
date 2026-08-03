@@ -5,7 +5,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score
 
-from preprocess import load_raw_data, clean_data, get_feature_target
+from preprocess_clf import load_raw_data, clean_data, get_feature_target
 
 
 def train_baseline_model(X, y, test_size=0.2, random_state=42):
@@ -27,7 +27,7 @@ def train_baseline_model(X, y, test_size=0.2, random_state=42):
 
 
 if __name__ == "__main__":
-    df = load_raw_data("/Users/savirpatil/Projects/startup-predictor/data/raw/big_startup_secsees_dataset.csv")
+    df = load_raw_data("data/raw/big_startup_secsees_dataset.csv")
     df = clean_data(df)
     X, y = get_feature_target(df)
     model = train_baseline_model(X, y)

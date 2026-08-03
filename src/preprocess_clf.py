@@ -89,7 +89,7 @@ def get_feature_target(df: pd.DataFrame):
 
 
 if __name__ == "__main__":
-    df = load_raw_data("/Users/savirpatil/Projects/startup-predictor/data/raw/big_startup_secsees_dataset.csv")
+    df = load_raw_data("data/raw/big_startup_secsees_dataset.csv")
     df = clean_data(df)
     X, y = get_feature_target(df)
     print(X.shape, y.value_counts().to_dict())
