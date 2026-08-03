@@ -37,22 +37,6 @@ Source: [Big Startup Success/Fail Dataset from Crunchbase](https://www.kaggle.co
 - Streamlit (app + hosting)
 - pycountry / pycountry-convert (geography mapping)
 
-## Project Structure
-startup-predictor/
-├── app/
-│ └── app.py # Streamlit app
-├── src/
-│ ├── preprocess.py # Data cleaning and feature engineering
-│ ├── train.py # Baseline model training
-│ └── tune.py # Optuna hyperparameter tuning
-├── data/
-│ └── raw/ # Dataset (not tracked in git)
-├── models/
-│ └── tuned_logreg.pkl # Final trained model
-├── .streamlit/
-│ └── config.toml # App theme config
-└── requirements.txt
-
 ## Known Limitations
 
 - Restricting to resolved outcomes skews the training data toward older companies
@@ -62,4 +46,4 @@ startup-predictor/
 - Tested whether adding nonlinear and interaction terms (squared timing
   features, funding x region interactions) would improve performance, and
   found only a negligible gain, (+0.001 AUC) indicating the model's
-  performance ceiling comes from feature richness
+  performance ceiling comes from features
