@@ -2,8 +2,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 models = ["Logistic\nRegression", "Random\nForest", "Neural\nNetwork"]
-auc = [0.8226, 0.819, 0.81]        
-accuracy = [0.75, 0.7561, 0.74]    
+auc = [0.8226, 0.809, 0.81]        
+accuracy = [0.75, 0.756, 0.74]    
 
 x = np.arange(len(models))
 width = 0.35
