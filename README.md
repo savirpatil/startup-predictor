@@ -16,6 +16,7 @@ Estimates whether an early-stage startup is headed toward acquisition or IPO, ve
 Most startups fail, and the reasons can be difficult to quantify. This project explores whether a simple, interpretable model can predict a startup's likely outcome using only information available in the early stages, while showing which factors are driving that prediction.
 
 ## Repository Structure
+```
 startup-predictor/
 ├── data/
 │   └── raw/                Raw dataset (gitignored)
@@ -31,6 +32,7 @@ startup-predictor/
 │   └── config.toml         App theme config
 ├── requirements.txt
 └── README.md
+```
 ## Setup
 
 ```bash
