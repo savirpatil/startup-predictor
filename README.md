@@ -2,7 +2,7 @@
 
 Estimates whether an early-stage startup is headed toward acquisition or IPO, versus closure, using only funding history, timing, industry, and location, plus a bonus valuation estimator for high-confidence, well-funded cases.
 
-**[Try the live app](https://startup-success-predictor-gxewqlkcddbv7xme9qwedb.streamlit.app/)** · **[View on GitHub](#)**
+**[Try the live app](https://startup-success-predictor-gxewqlkcddbv7xme9qwedb.streamlit.app/)** · **[View GitHub Page]([#](https://savirpatil.github.io/startup-predictor/))**
 
 | | |
 |---|---|
