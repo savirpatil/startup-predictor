@@ -18,17 +18,17 @@ Most startups fail, and the reasons can be difficult to quantify. This project e
 ## Repository Structure
 startup-predictor/
 ├── data/
-│ └── raw/ Raw dataset (gitignored)
+│   └── raw/                Raw dataset (gitignored)
 ├── src/
-│ ├── preprocess.py Data cleaning & feature engineering
-│ ├── train.py Baseline model training
-│ └── tune.py Optuna hyperparameter tuning
+│   ├── preprocess.py       Data cleaning & feature engineering
+│   ├── train.py            Baseline model training
+│   └── tune.py             Optuna hyperparameter tuning
 ├── models/
-│ └── tuned_logreg.pkl Final trained model
+│   └── tuned_logreg.pkl    Final trained model
 ├── app/
-│ └── app.py Streamlit demo app
+│   └── app.py              Streamlit demo app
 ├── .streamlit/
-│ └── config.toml App theme config
+│   └── config.toml         App theme config
 ├── requirements.txt
 └── README.md
 ## Setup
@@ -98,7 +98,7 @@ Performance held steady or improved across every iteration, even as the classifi
 
 ## Bonus: Valuation Estimator
 
-As a bonus feature, when the primary model is highly confident a company is on track for success, a second model estimates a possible valuation range using the same company profile. This model is trained separately on a dataset of unicorns — startups that have already reached a billion-dollar valuation — so it is only used for the predictions the primary model is most confident in.
+As a bonus feature, when the primary model is highly confident a company is on track for success, a second model estimates a possible valuation range using the same company profile. This model is trained separately on a dataset of unicorns, startups that have already reached a billion-dollar valuation, so it is only used for the predictions the primary model is most confident in.
 
 **When it activates:** requires at least 75% success probability from the primary model, and at least $10M in total funding. Between $10M and $100M, a low-confidence warning is shown, since 96% of the training data raised $100M or more. Above $100M, the estimate is shown without a warning.
 
@@ -114,7 +114,7 @@ As a bonus feature, when the primary model is highly confident a company is on t
 
 Closed startups are missing key fields (founding date, country, funding amount) at roughly 2x the rate of successful ones. Rather than dropping incomplete records, we kept them and flagged what's missing. The pattern shows up directly in the final model: missing-data flags carry a negative association with success.
 
-**Counterintuitive finding:** startups raising funding rounds more frequently were less likely to succeed in our model — possibly reflecting urgent cash needs rather than momentum.
+**Counterintuitive finding:** startups raising funding rounds more frequently were less likely to succeed in our model, possibly reflecting cash needs rather than momentum.
 
 ## Data Sources
 
