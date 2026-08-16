@@ -18,20 +18,42 @@ Most startups fail, and the reasons can be difficult to quantify. This project e
 ## Repository Structure
 ```
 startup-predictor/
-├── data/
-│   └── raw/                Raw dataset (gitignored)
-├── src/
-│   ├── preprocess.py       Data cleaning & feature engineering
-│   ├── train.py            Baseline model training
-│   └── tune.py             Optuna hyperparameter tuning
-├── models/
-│   └── tuned_logreg.pkl    Final trained model
-├── app/
-│   └── app.py              Streamlit demo app
+├── .github/
+│   └── workflows/
+│       └── deploy.yml
 ├── .streamlit/
-│   └── config.toml         App theme config
-├── requirements.txt
-└── README.md
+│   └── config.toml
+├── app/
+│   └── app.py
+├── data/
+│   └── raw/
+│       └── .gitkeep
+├── docs/
+│   ├── images/
+│   │   ├── verdict-card.png
+│   │   ├── viz1_model_iterations.png
+│   │   ├── viz2_model_comparison.png
+│   │   └── viz3_missing_data_bias.png
+│   └── index.html
+├── models/
+│   ├── baseline_logreg.pkl
+│   ├── tuned_logreg.pkl
+│   └── xgb_unicorn_model.pkl
+├── src/
+│   ├── __init__.py
+│   ├── compute_stats.py
+│   ├── preprocess_clf.py
+│   ├── preprocess_reg.py
+│   ├── train_clf.py
+│   ├── train_reg.py
+│   └── tune_clf.py
+├── visualizations/
+│   ├── visualization1.py
+│   ├── visualization2.py
+│   └── visualization3.py
+├── .gitignore
+├── README.md
+└── requirements.txt
 ```
 ## Setup
 
