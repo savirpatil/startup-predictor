@@ -2,7 +2,7 @@
 
 Estimates whether an early-stage startup is headed toward acquisition or IPO, versus closure, using only funding history, timing, industry, and location, plus a bonus valuation estimator for high-confidence, well-funded cases.
 
-**[Try the live app](https://startup-success-predictor-gxewqlkcddbv7xme9qwedb.streamlit.app/)** · **[View GitHub Page](https://savirpatil.github.io/startup-predictor/)**
+**[Try the live app](https://startup-predictor-37xkf39vwzl762ads2sifh.streamlit.app/)** · **[View GitHub Page](https://savirpatil.github.io/startup-predictor/)**
 
 | | |
 |---|---|
@@ -132,7 +132,7 @@ Closed startups are missing key fields (founding date, country, funding amount) 
 Filtered to companies with a resolved outcome (closed, acquired, or IPO'd). Still-operating companies are excluded, since that outcome hasn't happened yet.
 
 - Primary: [Crunchbase dataset](https://www.kaggle.com/datasets/yanmaksi/big-startup-secsees-fail-dataset-from-crunchbase)
-- Secondary: unicorn dataset (for the valuation estimator)
+- Secondary: [unicorn dataset](https://www.kaggle.com/datasets/adilshamim8/startup-growth-and-investment-data) (for the valuation estimator)
 
 ## Bias & Impact
 
